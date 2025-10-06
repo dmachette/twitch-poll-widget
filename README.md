@@ -37,52 +37,58 @@ twitch-poll-widget/
 ### 1. Clone the repo
 ```bash
 git clone https://github.com/dmachette/twitch-poll-widget.git
-cd twitch-poll-widget
-2. Add your Twitch credentials (optional)
-Create a .env file locally (do not commit this file):
+cd twitch-poll-widge
+
+```
 
 2. Add your Twitch credentials (optional)
 Create a .env file locally (do not commit this file):
 
+```ini
 TWITCH_USERNAME=your_twitch_username
 TWITCH_OAUTH_TOKEN=oauth:your_secret_token_here
 TWITCH_CHANNEL=your_channel_name
-
+```
 If no token is provided, the widget connects anonymously.
 
-3. Vercel Deployment (Recommended)
-1.Go to https://vercel.com/ and log in with GitHub
+---
 
-2.Import this repo → select your project
+3- Vercel Deployment (Recommended)
 
-3.Under Settings → Environment Variables, add the same .env variables
+1-Go to https://vercel.com/ and log in with GitHub
 
-4.Click Deploy
+2-Import this repo → select your project
 
-5.Use the generated URL in your streaming software:
+3-Under Settings → Environment Variables, add the same .env variables
 
-arduino
+4-Click Deploy
+
+5-Use the generated URL in your streaming software:
+
+```
 Copy code
 https://your-vercel-url/public/widget.html
 
-4. Local Testing
+```
+---
+
+4- Local Testing
 If you want to test locally:
 
-bash
-Copy code
+```bash
 npm install -g vercel   # optional, if you don’t have vercel CLI
 vercel dev
-
+```
 Open the URL provided by Vercel CLI in your browser.
 
 Usage
 Poll Commands in Chat
 *Start a poll:
 
-csharp
+```csharp
 Copy code
 !poll What is your favorite color?
-
+```
 *Votes will be tallied (future versions can include live bars).
 
 Status Indicator
@@ -98,8 +104,6 @@ Notes
 * The widget is fully static, so it works anywhere a browser overlay is supported
 
 * Designed to be modular — add features like live vote bars, countdown timers, or multiple polls easily
-
-License
 
 MIT License © 2025
 
