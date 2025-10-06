@@ -65,8 +65,7 @@ If no token is provided, the widget connects anonymously.
 
 5-Use the generated URL in your streaming software:
 
-```
-Copy code
+```arduino
 https://your-vercel-url/public/widget.html
 
 ```
