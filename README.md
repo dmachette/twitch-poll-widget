@@ -56,17 +56,17 @@ If no token is provided, the widget connects anonymously.
 
 ---
 
-3- Vercel Deployment (Recommended)
+3. Vercel Deployment (Recommended)
 
-1-Go to https://vercel.com/ and log in with GitHub
+1.Go to https://vercel.com/ and log in with GitHub
 
-2-Import this repo → select your project
+2.Import this repo → select your project
 
-3-Under Settings → Environment Variables, add the same .env variables
+3.Under Settings → Environment Variables, add the same .env variables
 
-4-Click Deploy
+4.Click Deploy
 
-5-Use the generated URL in your streaming software:
+5.Use the generated URL in your streaming software:
 
 ```arduino
 https://your-vercel-url/public/widget.html
@@ -74,7 +74,7 @@ https://your-vercel-url/public/widget.html
 ```
 ---
 
-4- Local Testing
+4. Local Testing
 If you want to test locally:
 
 ```bash
