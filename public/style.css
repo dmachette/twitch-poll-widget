@@ -1,0 +1,23 @@
+body {
+  margin: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+}
+
+#status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+#status-dot.offline {
+  background: red;
+}
+
+#status-dot.online {
+  background: limegreen;
+}

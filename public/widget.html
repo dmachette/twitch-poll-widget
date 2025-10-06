@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Twitch Poll Widget</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <h1>Twitch Poll Widget</h1>
+  <div>
+    Status: <span id="status-text">Connecting...</span>
+    <span id="status-dot" class="offline"></span>
+  </div>
+
+  <div id="poll-container">
+    <!-- Poll will appear here -->
+  </div>
+
+  <script src="./tmi.min.js"></script>
+  <script src="./poll.js" type="module"></script>
+</body>
+</html>

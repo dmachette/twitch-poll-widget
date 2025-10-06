@@ -1,0 +1,8 @@
+{
+  "name": "twitch-poll-widget",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {}
+}
