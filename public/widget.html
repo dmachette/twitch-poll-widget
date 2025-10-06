@@ -9,11 +9,11 @@
 </head>
 <body>
   <div id="overlay">
-    <!-- Visible overlay header with colored words -->
+    <!-- Header with rainbow neon glow -->
     <h1 id="overlay-title">
-      <span class="machette">MACHETTE SQUAD</span> 
-      <span class="twitch">Twitch</span> 
-      <span class="poll">Poll</span> 
+      <span class="machette">MACHETTE SQUAD</span>
+      <span class="twitch">Twitch</span>
+      <span class="poll">Poll</span>
       <span class="widget">Widget</span>
     </h1>
 
@@ -26,6 +26,16 @@
     <!-- Poll container -->
     <div id="poll-container">
       <!-- Poll questions and votes will appear here -->
+    </div>
+
+    <!-- Poll commands -->
+    <div id="poll-commands">
+      <h3>Poll Commands</h3>
+      <ul>
+        <li><code>!poll [question] [option1] [option2] ...</code> - Start a new poll</li>
+        <li><code>!vote [option]</code> - Vote for an option</li>
+        <li><code>!endpoll</code> - End the current poll</li>
+      </ul>
     </div>
   </div>
 </body>
