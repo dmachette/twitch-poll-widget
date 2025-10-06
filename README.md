@@ -20,14 +20,17 @@ Connects to Twitch chat anonymously or with your account for sending/receiving m
 ## Folder Structure
 
 twitch-poll-widget/
+│
 ├── public/
-│ ├── tmi.min.js # Local TMI.js library
-│ ├── style.css # Widget styling
-│ ├── widget.html # Main overlay HTML
-│ └── poll.js # Poll widget logic
-├── .gitignore # Ignore local secrets
+│   ├── tmi.min.js               # local TMI.js library
+│   ├── style.css                # widget styles
+│   ├── widget.html              # the actual overlay file
+│   └── poll.js                  # your main poll widget logic
+│
+├── .env                         # (NOT committed to GitHub)
+├── .gitignore
 ├── package.json
-├── vercel.json # Deployment config for Vercel
+├── vercel.json
 └── README.md
 
 ---
