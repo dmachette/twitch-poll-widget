@@ -18,7 +18,7 @@ Connects to Twitch chat anonymously or with your account for sending/receiving m
 ---
 
 ## Folder Structure
-
+```
 twitch-poll-widget/
 │
 ├── public/
@@ -33,7 +33,7 @@ twitch-poll-widget/
 ├── vercel.json
 └── README.md
 
----
+```
 
 ## Setup
 
