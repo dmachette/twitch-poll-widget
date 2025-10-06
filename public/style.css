@@ -1,21 +1,65 @@
 body {
   margin: 0;
-  font-family: sans-serif;
-  background: rgba(0,0,0,0.5); /* semi-transparent overlay */
+  font-family: 'Segoe UI', sans-serif;
+  background: rgba(0, 0, 0, 0.5); /* semi-transparent overlay */
   color: white;
 }
 
 #overlay {
   padding: 10px;
+  text-align: center;
+}
+
+/* Stylish header */
+#overlay-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+}
+
+#overlay-title span.machette {
+  color: #00ffff; /* cyan */
+}
+
+#overlay-title span.twitch {
+  color: #9146FF; /* Twitch purple */
+}
+
+#overlay-title span.poll {
+  color: #ff4d4d; /* red */
+}
+
+#overlay-title span.widget {
+  color: #9b59b6; /* purple */
+}
+
+/* Connection status dot */
+#status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 #status-dot {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: red; /* default offline */
-  margin-right: 5px;
+  margin-right: 8px;
+  border: 1px solid #fff;
+}
+
+#channel-name {
+  font-size: 16px;
+}
+
+/* Poll container */
+#poll-container {
+  margin-top: 10px;
+  font-size: 18px;
 }
 
 #poll-container h3 {
