@@ -1,23 +1,27 @@
 body {
   margin: 0;
-  background: rgba(0, 0, 0, 0.6);
+  font-family: sans-serif;
+  background: rgba(0,0,0,0.5); /* semi-transparent overlay */
   color: white;
-  font-family: 'Poppins', sans-serif;
-  text-align: center;
+}
+
+#overlay {
+  padding: 10px;
 }
 
 #status-dot {
+  display: inline-block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  display: inline-block;
-  margin-left: 8px;
+  background: red; /* default offline */
+  margin-right: 5px;
 }
 
-#status-dot.offline {
-  background: red;
+#poll-container h3 {
+  margin: 10px 0 5px;
 }
 
-#status-dot.online {
-  background: limegreen;
+#poll-container div {
+  margin-left: 10px;
 }
