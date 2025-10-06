@@ -88,7 +88,7 @@ Poll Commands in Chat
 *Start a poll:
 
 ```csharp
-Copy code
+
 !poll What is your favorite color?
 ```
 *Votes will be tallied (future versions can include live bars).
