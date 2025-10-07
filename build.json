@@ -2,15 +2,31 @@
   "build": {
     "id": "2025-10-07_02",
     "version": "v5.7.1",
-    "name": "MACHETTE SQUAD Poll Widget — Synchronized Glow Edition",
-    "date": "2025-10-07T13:00:00+11:00",
-    "notes": "Synchronized rainbow title animation timing with the panel glow pulse for unified visual rhythm."
+    "name": "MACHETTE SQUAD Poll Widget — Synchronized Glow Edition (Stable Baseline)",
+    "date": "2025-10-07T13:15:00+11:00",
+    "notes": "Locked in as the official stable baseline build. Unified rainbow title, panel glow, and auth glow animations. Fully compatible with Vercel deployment and environment-based Twitch credentials."
   },
+  "status": "stable",
   "files": {
+    "public/widget.html": {
+      "version": "v5.7.1",
+      "changes": "Maintains header layout, auth status UI, and poll container design from v5.6.",
+      "tags": ["overlay", "ui", "stable"]
+    },
     "public/style.css": {
       "version": "v5.7.1",
-      "changes": "Adjusted rainbowGlow keyframes and duration to match panelGlow 3s ease-in-out cycle.",
-      "tags": ["style", "animation", "sync", "branding"]
+      "changes": "RainbowGlow animation synchronized with panelGlow. Auth glow and reactive border preserved.",
+      "tags": ["style", "animation", "branding", "stable"]
+    },
+    "public/poll.js": {
+      "version": "v5.6.1",
+      "changes": "Handles auth status, TMI connection, and panel glow updates.",
+      "tags": ["logic", "tmi", "auth", "poll"]
+    },
+    "api/get-twitch-token.js": {
+      "version": "v5.6.1",
+      "changes": "Injects Twitch OAuth token and channel name from Vercel environment variables.",
+      "tags": ["api", "serverless", "security"]
     }
   }
 }
