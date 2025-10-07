@@ -1,7 +1,7 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: rgba(0, 0, 0, 0.5); /* semi-transparent overlay */
+  font-family: Arial, sans-serif;
+  background: transparent;
   color: white;
 }
 
@@ -43,64 +43,123 @@ body {
   100% { text-shadow: 0 0 5px red, 0 0 10px orange, 0 0 20px yellow; }
 }
 
-/* Connection status dot */
-#status {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 15px;
+@keyframes rainbow-glow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 0%; }
 }
 
+/* Twitch status dot */
 #status-dot {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: red; /* default offline */
-  margin-right: 8px;
-  border: 1px solid #fff;
+  background: red;
+  margin-right: 5px;
 }
 
-#channel-name {
-  font-size: 16px;
+/* Auth status display */
+#auth-status {
+  margin-left: 10px;
+  font-weight: bold;
+  font-size: 14px;
+  text-shadow: 0 0 5px #000;
+  transition: color 0.3s ease;
+}
+.auth-ok {
+  color: #00ff66;
+}
+.auth-fail {
+  color: #ff4444;
 }
 
-/* Poll container */
+/* ===== AUTH STATUS GLOW EFFECT ===== */
+@keyframes authGlowGreen {
+  0%   { text-shadow: 0 0 4px #00ff6655, 0 0 8px #00ff6633; }
+  100% { text-shadow: 0 0 10px #00ff6699, 0 0 20px #00ff6677; }
+}
+@keyframes authGlowRed {
+  0%   { text-shadow: 0 0 4px #ff444455, 0 0 8px #ff444433; }
+  100% { text-shadow: 0 0 10px #ff444499, 0 0 20px #ff444477; }
+}
+
+.auth-ok {
+  color: #00ff66;
+  animation: authGlowGreen 2.5s ease-in-out infinite alternate;
+}
+.auth-fail {
+  color: #ff4444;
+  animation: authGlowRed 2.5s ease-in-out infinite alternate;
+}
+
+/* Poll options */
 #poll-container {
   margin-top: 10px;
-  font-size: 18px;
 }
 
-/* Poll commands below poll container */
-#poll-commands {
-  margin-top: 15px;
-  font-size: 16px;
-  text-align: left;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 10px;
-  border-radius: 8px;
-  color: #ffffffcc;
-}
-
-#poll-commands h3 {
-  margin-bottom: 5px;
-  text-align: center;
-  font-size: 18px;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-}
-
-#poll-commands ul {
-  list-style-type: disc;
-  padding-left: 20px;
-}
-
-#poll-commands li code {
+.poll-option {
   background: rgba(255,255,255,0.1);
-  padding: 2px 4px;
+  padding: 5px 8px;
+  margin: 3px 0;
   border-radius: 4px;
-  color: #fff;
-  font-family: 'Courier New', monospace;
+  font-size: 16px;
 }
+
+/* Command table */
+#commands {
+  background: rgba(0,0,0,0.6);
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+#commands table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#commands th, #commands td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+#commands th { color: #ffcc00; }
+#commands td { color: #fff; }
+
+/* Build version display */
+#build-version {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 14px;
+  color: #fff;
+  opacity: 0.7;
+  font-weight: bold;
+  text-shadow: 0 0 4px #000;
+}
+
+/* ===== MACHETTE SQUAD POLL BORDER PANEL ===== */
+.poll-panel {
+  position: relative;
+  width: fit-content;
+  padding: 20px;
+  margin: 0 auto;
+  border: 3px solid #9146FF;
+  border-radius: 18px;
+  background: rgba(10, 10, 25, 0.85);
+  box-shadow: 0 0 25px #9146ff66, inset 0 0 10px #9146ff22;
+  animation: panelGlow 3s ease-in-out infinite alternate;
+}
+
+/* Optional subtle pulsing glow animation */
+@keyframes panelGlow {
+  0% {
+    box-shadow: 0 0 25px #9146ff66, inset 0 0 10px #9146ff22;
+  }
+  100% {
+    box-shadow: 0 0 35px #ff47c480, inset 0 0 15px #9146ff44;
+  }
+}
+

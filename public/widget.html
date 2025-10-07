@@ -2,40 +2,69 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Twitch Poll Widget</title>
+<title>MACHETTE SQUAD Twitch Poll Widget</title>
 <link rel="stylesheet" href="style.css">
 <script src="tmi.min.js"></script>
 <script src="poll.js" defer></script>
 </head>
 <body>
-  <div id="overlay">
-    <!-- Header with rainbow neon glow -->
-    <h1 id="overlay-title">
-      <span class="machette">MACHETTE SQUAD</span>
-      <span class="twitch">Twitch</span>
-      <span class="poll">Poll</span>
-      <span class="widget">Widget</span>
-    </h1>
+  <!-- Border Panel Wrapper -->
+  <div class="poll-panel">
+    <div id="overlay">
 
-    <!-- Connection status -->
-    <div id="status">
-      <span id="status-dot"></span>
-      <span id="channel-name"></span>
-    </div>
+      <!-- Header with rainbow neon glow -->
+      <h1 id="overlay-title">
+        <span class="machette">MACHETTE SQUAD</span>
+        <span class="twitch">Twitch</span>
+        <span class="poll">Poll</span>
+        <span class="widget">Widget</span>
+      </h1>
 
-    <!-- Poll container -->
-    <div id="poll-container">
-      <!-- Poll questions and votes will appear here -->
-    </div>
+      <!-- Twitch connection status -->
+      <div id="status">
+        <span id="status-dot"></span>
+        <span id="channel-name"></span>
+        <span id="auth-status"></span>
+      </div>
 
-    <!-- Poll commands -->
-    <div id="poll-commands">
-      <h3>Poll Commands</h3>
-      <ul>
-        <li><code>!poll [question] [option1] [option2] ...</code> - Start a new poll</li>
-        <li><code>!vote [option]</code> - Vote for an option</li>
-        <li><code>!endpoll</code> - End the current poll</li>
-      </ul>
+      <!-- Poll container -->
+      <div id="poll-container">
+        <p>No active poll</p>
+      </div>
+
+      <!-- Command table -->
+      <div id="commands">
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>!startpoll &lt;option1&gt; &lt;option2&gt; ...</td>
+              <td>Starts a new poll with up to 5 options.</td>
+            </tr>
+            <tr>
+              <td>!vote &lt;number&gt;</td>
+              <td>Vote for a specific option (1–5).</td>
+            </tr>
+            <tr>
+              <td>!endpoll</td>
+              <td>Ends the current poll and locks votes.</td>
+            </tr>
+            <tr>
+              <td>!results</td>
+              <td>Shows current votes in chat (optional).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Dynamic build version -->
+      <div id="build-version">v5.2.0</div>
+
     </div>
   </div>
 </body>

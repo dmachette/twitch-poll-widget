@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build:tag": "node update-build.js"
+  }
+}
