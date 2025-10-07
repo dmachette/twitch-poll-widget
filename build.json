@@ -1,16 +1,16 @@
 {
   "build": {
-    "id": "2025-10-06_06",
-    "version": "v5.5.0",
-    "name": "MACHETTE SQUAD Poll Widget — Auth Glow Edition",
-    "date": "2025-10-06T18:00:00+11:00",
-    "notes": "Added soft pulsing glow animation to the authentication status text for visual feedback that matches panel glow."
+    "id": "2025-10-07_02",
+    "version": "v5.7.1",
+    "name": "MACHETTE SQUAD Poll Widget — Synchronized Glow Edition",
+    "date": "2025-10-07T13:00:00+11:00",
+    "notes": "Synchronized rainbow title animation timing with the panel glow pulse for unified visual rhythm."
   },
   "files": {
     "public/style.css": {
-      "version": "v5.5",
-      "changes": "Added @keyframes authGlowGreen and authGlowRed for animated glow on auth status text.",
-      "tags": ["style", "animation", "auth"]
+      "version": "v5.7.1",
+      "changes": "Adjusted rainbowGlow keyframes and duration to match panelGlow 3s ease-in-out cycle.",
+      "tags": ["style", "animation", "sync", "branding"]
     }
   }
 }

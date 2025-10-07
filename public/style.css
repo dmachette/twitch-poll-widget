@@ -1,15 +1,49 @@
+/* BUILD_TAG: CSS v5.6.1 */
+
+/* Base layout */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: transparent;
   color: white;
 }
+#overlay { padding: 20px; }
 
-#overlay {
-  padding: 10px;
-  text-align: center;
+/* Panel wrapper (default twitch-purple glow) */
+.poll-panel {
+  position: relative;
+  width: fit-content;
+  padding: 20px;
+  margin: 0 auto;
+  border: 3px solid #9146FF;
+  border-radius: 18px;
+  background: rgba(10, 10, 25, 0.85);
+  box-shadow: 0 0 25px #9146ff66, inset 0 0 10px #9146ff22;
+  animation: panelGlow 3s ease-in-out infinite alternate;
+  transition: border-color 1s ease, box-shadow 1s ease;
+}
+@keyframes panelGlow {
+  0% { box-shadow: 0 0 25px #9146ff66, inset 0 0 10px #9146ff22; }
+  100% { box-shadow: 0 0 35px #ff47c480, inset 0 0 15px #9146ff44; }
 }
 
+/* Reactive states */
+.poll-panel.authenticated {
+  border-color: #00ff66;
+  box-shadow: 0 0 35px #00ff6699, inset 0 0 15px #00ff6644;
+}
+.poll-panel.anonymous {
+  border-color: #ff4444;
+  box-shadow: 0 0 35px #ff444499, inset 0 0 15px #ff444444;
+}
+
+/* Title split words */
+#overlay-title {
+  font-size: 36px;
+  font-weight: bold;
+  display: flex;
+  gap: 10px;
+}
 /* Stylish rainbow neon header */
 #overlay-title {
   font-size: 32px;
@@ -21,7 +55,7 @@ body {
 #overlay-title span {
   display: inline-block;
   position: relative;
-  animation: rainbowGlow 4s linear infinite;
+  animation: rainbowGlow 3s ease-in-out infinite alternate;
   text-shadow: 0 0 5px currentColor, 0 0 15px currentColor, 0 0 25px currentColor;
   margin: 0 3px;
   padding: 0 2px;
@@ -34,7 +68,7 @@ body {
 #overlay-title span.poll { color: #ff4d4d; }      /* red */
 #overlay-title span.widget { color: #9b59b6; }    /* purple */
 
-/* Rainbow glow animation */
+/* Rainbow glow animation — synced with panelGlow cycle */
 @keyframes rainbowGlow {
   0%   { text-shadow: 0 0 5px red, 0 0 10px orange, 0 0 20px yellow; }
   25%  { text-shadow: 0 0 5px green, 0 0 10px cyan, 0 0 20px blue; }
@@ -48,60 +82,44 @@ body {
   100% { background-position: 100% 0%; }
 }
 
-/* Twitch status dot */
+}
+
+/* Status and auth */
+#status {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 #status-dot {
   display: inline-block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: red;
-  margin-right: 5px;
+  background: red; /* default offline */
 }
+#channel-name { font-weight: 600; }
+#auth-status { margin-left: 8px; font-weight: bold; font-size: 14px; text-shadow: 0 0 4px #000; transition: color 0.3s linear; }
 
-/* Auth status display */
-#auth-status {
-  margin-left: 10px;
-  font-weight: bold;
-  font-size: 14px;
-  text-shadow: 0 0 5px #000;
-  transition: color 0.3s ease;
-}
-.auth-ok {
-  color: #00ff66;
-}
-.auth-fail {
-  color: #ff4444;
-}
-
-/* ===== AUTH STATUS GLOW EFFECT ===== */
+/* Auth glow animations (green/red) */
 @keyframes authGlowGreen {
-  0%   { text-shadow: 0 0 4px #00ff6655, 0 0 8px #00ff6633; }
+  0% { text-shadow: 0 0 4px #00ff6655, 0 0 8px #00ff6633; }
   100% { text-shadow: 0 0 10px #00ff6699, 0 0 20px #00ff6677; }
 }
 @keyframes authGlowRed {
-  0%   { text-shadow: 0 0 4px #ff444455, 0 0 8px #ff444433; }
+  0% { text-shadow: 0 0 4px #ff444455, 0 0 8px #ff444433; }
   100% { text-shadow: 0 0 10px #ff444499, 0 0 20px #ff444477; }
 }
+.auth-ok { color: #00ff66; animation: authGlowGreen 2.5s ease-in-out infinite alternate; }
+.auth-fail { color: #ff4444; animation: authGlowRed 2.5s ease-in-out infinite alternate; }
 
-.auth-ok {
-  color: #00ff66;
-  animation: authGlowGreen 2.5s ease-in-out infinite alternate;
-}
-.auth-fail {
-  color: #ff4444;
-  animation: authGlowRed 2.5s ease-in-out infinite alternate;
-}
-
-/* Poll options */
-#poll-container {
-  margin-top: 10px;
-}
-
+/* Poll */
+#poll-container { margin-top: 12px; }
 .poll-option {
-  background: rgba(255,255,255,0.1);
-  padding: 5px 8px;
-  margin: 3px 0;
-  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  padding: 6px 10px;
+  margin: 6px 0;
+  border-radius: 6px;
   font-size: 16px;
 }
 
@@ -110,56 +128,26 @@ body {
   background: rgba(0,0,0,0.6);
   padding: 8px;
   border-radius: 6px;
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 14px;
 }
-
-#commands table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
+#commands table { width: 100%; border-collapse: collapse; }
 #commands th, #commands td {
   padding: 6px 8px;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
 }
-
 #commands th { color: #ffcc00; }
 #commands td { color: #fff; }
 
-/* Build version display */
+/* Build version */
 #build-version {
   position: absolute;
   bottom: 8px;
   right: 12px;
   font-size: 14px;
   color: #fff;
-  opacity: 0.7;
+  opacity: 0.85;
   font-weight: bold;
   text-shadow: 0 0 4px #000;
 }
-
-/* ===== MACHETTE SQUAD POLL BORDER PANEL ===== */
-.poll-panel {
-  position: relative;
-  width: fit-content;
-  padding: 20px;
-  margin: 0 auto;
-  border: 3px solid #9146FF;
-  border-radius: 18px;
-  background: rgba(10, 10, 25, 0.85);
-  box-shadow: 0 0 25px #9146ff66, inset 0 0 10px #9146ff22;
-  animation: panelGlow 3s ease-in-out infinite alternate;
-}
-
-/* Optional subtle pulsing glow animation */
-@keyframes panelGlow {
-  0% {
-    box-shadow: 0 0 25px #9146ff66, inset 0 0 10px #9146ff22;
-  }
-  100% {
-    box-shadow: 0 0 35px #ff47c480, inset 0 0 15px #9146ff44;
-  }
-}
-

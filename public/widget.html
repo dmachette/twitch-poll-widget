@@ -1,18 +1,21 @@
+<!-- BUILD_TAG: HTML v5.6.1 - Poll widget with panel -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MACHETTE SQUAD Twitch Poll Widget</title>
-<link rel="stylesheet" href="style.css">
-<script src="tmi.min.js"></script>
-<script src="poll.js" defer></script>
+  <meta charset="utf-8" />
+  <title>MACHETTE SQUAD Twitch Poll Widget</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- loader will try local tmi.min.js then CDN if missing -->
+  <script src="loader-tmi.js"></script>
+  <script src="poll.js" defer></script>
 </head>
 <body>
   <!-- Border Panel Wrapper -->
   <div class="poll-panel">
     <div id="overlay">
 
-      <!-- Header with rainbow neon glow -->
+      <!-- Header with rainbow neon glow, each word colored separately -->
       <h1 id="overlay-title">
         <span class="machette">MACHETTE SQUAD</span>
         <span class="twitch">Twitch</span>
@@ -20,7 +23,7 @@
         <span class="widget">Widget</span>
       </h1>
 
-      <!-- Twitch connection status -->
+      <!-- Twitch connection status + auth status -->
       <div id="status">
         <span id="status-dot"></span>
         <span id="channel-name"></span>
@@ -63,7 +66,7 @@
       </div>
 
       <!-- Dynamic build version -->
-      <div id="build-version">v5.2.0</div>
+      <div id="build-version">v5.6.1</div>
 
     </div>
   </div>
