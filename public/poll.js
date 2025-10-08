@@ -1,5 +1,5 @@
-// MACHETTE SQUAD Poll Widget v5.7.3
-// "Unified Creds Edition" — single smart status dot + /api/get-twitch-creds
+// MACHETTE SQUAD Poll Widget v5.7.4
+// "Chat Voice Restored Edition" — safe Twitch message replies
 // --------------------------------------------------------------------------
 
 let client = null;
@@ -20,13 +20,11 @@ function updateStatus(state, username) {
       dot.style.boxShadow = "0 0 10px #00ff00";
       name.textContent = `Authenticated as ${username}`;
       break;
-
     case "connected-anon":
       dot.style.backgroundColor = "#ffff00"; // yellow
       dot.style.boxShadow = "0 0 10px #ffff00";
       name.textContent = `Anonymous mode`;
       break;
-
     case "disconnected":
     default:
       dot.style.backgroundColor = "#ff0000"; // red
@@ -39,7 +37,7 @@ function updateStatus(state, username) {
 // ====== FETCH TWITCH CREDS FROM SERVERLESS API ======
 async function connectTwitch() {
   try {
-    const res = await fetch("/api/get-twitch-creds"); // updated endpoint
+    const res = await fetch("/api/get-twitch-creds");
     const creds = await res.json();
     channelName = creds.channel;
     console.log("Fetched Twitch channel:", channelName);
@@ -47,6 +45,10 @@ async function connectTwitch() {
     if (client) {
       console.log("Client already exists, skipping re-init.");
       return;
+    }
+
+    if (!creds.token) {
+      console.warn("⚠️ No OAuth token detected — overlay will not reply in chat.");
     }
 
     // Initialize TMI client
@@ -59,7 +61,6 @@ async function connectTwitch() {
       channels: [channelName || "anonymous"]
     });
 
-    // Connect
     await client.connect();
     connected = true;
 
@@ -68,11 +69,8 @@ async function connectTwitch() {
       messageHandlerAttached = true;
     }
 
-    if (!creds.token) {
-      updateStatus("connected-anon");
-    } else {
-      updateStatus("connected-auth", channelName);
-    }
+    if (!creds.token) updateStatus("connected-anon");
+    else updateStatus("connected-auth", channelName);
 
     console.log("✅ Connected to Twitch chat!");
   } catch (err) {
@@ -84,7 +82,6 @@ async function connectTwitch() {
 // ====== HANDLE CHAT MESSAGES ======
 function handleChatMessage(channel, tags, message, self) {
   if (self) return;
-
   const lowerMsg = message.trim().toLowerCase();
   if (lowerMsg.startsWith("!")) handleChatCommand(tags.username, message);
 }
@@ -94,7 +91,7 @@ function handleChatCommand(user, message) {
   const parts = message.trim().split(" ");
   const command = parts[0].toLowerCase();
 
-  // Simplified poll syntax: !poll (Question)/(Option1)/(Option2)/...
+  // Simplified syntax: !poll Question/Option1/Option2/...
   if (command === "!poll") {
     const pollText = message.slice(6).trim();
     const segments = pollText.split("/").map(s => s.trim()).filter(Boolean);
@@ -105,7 +102,7 @@ function handleChatCommand(user, message) {
     }
 
     const question = segments[0];
-    const options = segments.slice(1, 6); // limit to 5
+    const options = segments.slice(1, 6);
     startPoll(question, options);
   }
 
@@ -148,11 +145,20 @@ function startPoll(question, options) {
       <p class="poll-note">(Vote using !vote 1–${options.length})</p>
     </div>
   `;
+
+  // Announce poll in chat (only if authenticated)
+  if (client && channelName && channelName !== "anonymous") {
+    client.say(channelName, `🗳️ New Poll Started: ${question}`);
+    options.forEach((opt, i) => {
+      client.say(channelName, `[${i + 1}] ${opt}`);
+    });
+    client.say(channelName, `Vote now with !vote 1–${options.length}!`);
+  }
 }
 
 function castVote(user, voteIndex) {
   if (!pollActive) return;
-  if (pollData.voters.has(user)) return; // prevent double vote
+  if (pollData.voters.has(user)) return;
 
   if (voteIndex >= 1 && voteIndex <= pollData.options.length) {
     pollData.votes[voteIndex - 1]++;
@@ -164,6 +170,16 @@ function castVote(user, voteIndex) {
 function endPoll() {
   pollActive = false;
   showResults();
+
+  if (client && client.readyState() === "OPEN" && pollData && pollData.options) {
+    const totalVotes = pollData.votes.reduce((a, b) => a + b, 0);
+    const topIndex = pollData.votes.indexOf(Math.max(...pollData.votes));
+    const winner = pollData.options[topIndex];
+
+    if (channelName && channelName !== "anonymous") {
+      client.say(channelName, `🏁 Poll Ended: "${pollData.question}" — Winner: ${winner} (${totalVotes} votes total)`);
+    }
+  }
 }
 
 function showResults() {
@@ -186,6 +202,16 @@ function showResults() {
       <p class="poll-note">Total Votes: ${totalVotes}</p>
     </div>
   `;
+
+  if (client && channelName && channelName !== "anonymous") {
+    client.say(channelName, `📊 Poll Results: ${pollData.question}`);
+    pollData.options.forEach((opt, i) => {
+      const votes = pollData.votes[i];
+      const percent = totalVotes ? Math.round((votes / totalVotes) * 100) : 0;
+      client.say(channelName, `[${i + 1}] ${opt} — ${votes} votes (${percent}%)`);
+    });
+  }
+
   pollData = null;
 }
 
