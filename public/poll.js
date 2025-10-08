@@ -94,8 +94,44 @@ async function connectTwitch() {
     }
 
     // Listen for chat commands
-    client.on("message", (channel, tags, message, self) => {
-      if (self) return;
+client.on("message", (channel, tags, message, self) => {
+  if (self) return;
+
+  const msg = message.trim();
+
+  // === EASY CHAT POLL FORMAT ===
+  if (msg.toLowerCase().startsWith("!poll ")) {
+    const parts = msg.slice(6).split("/").map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const question = parts[0];
+      const options = parts.slice(1, 6); // limit to 5
+      startPoll(tags.username, question, options);
+    } else {
+      client.say(channel, `@${tags.username}, use format: !poll Question / Option1 / Option2 / Option3`);
+    }
+    return;
+  }
+
+  // === VOTE COMMAND ===
+  if (msg.toLowerCase().startsWith("!vote ")) {
+    const num = parseInt(msg.split(" ")[1]);
+    castVote(tags.username, num);
+    return;
+  }
+
+  // === END POLL ===
+  if (msg.toLowerCase() === "!endpoll") {
+    endPoll(tags.username);
+    return;
+  }
+
+  // === RESULTS ===
+  if (msg.toLowerCase() === "!results") {
+    showResults();
+    return;
+  }
+});
+
 
       // Only allow moderators & broadcaster to start/end polls
       const isMod = !!tags.mod;
