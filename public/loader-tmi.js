@@ -1,24 +1,35 @@
-// loader-tmi.js — tries local tmi.min.js then falls back to CDN
-(function(){
-  function inject(src, onload){
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = onload;
-    s.onerror = function(){ console.warn('Failed to load', src); };
-    document.head.appendChild(s);
+// loader-tmi.js
+(function loadTMI() {
+  console.log("🔄 Loading TMI.js...");
+
+  function loadScript(src, onLoad, onError) {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = onLoad;
+    script.onerror = onError;
+    document.head.appendChild(script);
   }
 
-  // Try to fetch local file quickly; if 404 or error -> load CDN
-  fetch('tmi.min.js', { method: 'HEAD' })
-    .then(resp => {
-      if (resp.ok) {
-        inject('tmi.min.js', () => console.log('Loaded local tmi.min.js'));
-      } else {
-        console.warn('Local tmi.min.js not found; loading CDN');
-        inject('https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js', () => console.log('Loaded tmi.js from CDN'));
-      }
-    })
-    .catch(() => {
-      inject('https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js', () => console.log('Loaded tmi.js from CDN'));
-    });
+  // First try local
+  loadScript("tmi.min.js", () => {
+    console.log("✅ Loaded local tmi.min.js");
+    window.tmiReady = true;
+    initPollScript();
+  }, () => {
+    // Fallback to CDN
+    console.warn("⚠️ Local tmi.min.js missing, loading from CDN...");
+    loadScript("https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js", () => {
+      console.log("✅ Loaded TMI.js from CDN");
+      window.tmiReady = true;
+      initPollScript();
+    }, () => console.error("❌ Failed to load TMI.js"));
+  });
+
+  // Dynamically load poll.js only after tmi is ready
+  function initPollScript() {
+    const pollScript = document.createElement("script");
+    pollScript.src = "poll.js";
+    pollScript.defer = true;
+    document.body.appendChild(pollScript);
+  }
 })();
