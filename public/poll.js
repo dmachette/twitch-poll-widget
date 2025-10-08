@@ -1,16 +1,45 @@
 // MACHETTE SQUAD Poll Widget v5.7.3
-// "Unified Creds Edition" — switched to /api/get-twitch-creds
-// ------------------------------------------------------------
+// "Unified Creds Edition" — single smart status dot + /api/get-twitch-creds
+// --------------------------------------------------------------------------
 
 let client = null;
 let channelName = "";
 let connected = false;
 let messageHandlerAttached = false;
+let pollActive = false;
+let pollData = null;
+
+// ====== STATUS INDICATOR UPDATES ======
+function updateStatus(state, username) {
+  const dot = document.getElementById("status-dot");
+  const name = document.getElementById("channel-name");
+
+  switch (state) {
+    case "connected-auth":
+      dot.style.backgroundColor = "#00ff00"; // green
+      dot.style.boxShadow = "0 0 10px #00ff00";
+      name.textContent = `Authenticated as ${username}`;
+      break;
+
+    case "connected-anon":
+      dot.style.backgroundColor = "#ffff00"; // yellow
+      dot.style.boxShadow = "0 0 10px #ffff00";
+      name.textContent = `Anonymous mode`;
+      break;
+
+    case "disconnected":
+    default:
+      dot.style.backgroundColor = "#ff0000"; // red
+      dot.style.boxShadow = "0 0 10px #ff0000";
+      name.textContent = `Disconnected`;
+      break;
+  }
+}
 
 // ====== FETCH TWITCH CREDS FROM SERVERLESS API ======
 async function connectTwitch() {
   try {
-    const res = await fetch("/api/get-twitch-creds"); // ← updated endpoint
+    const res = await fetch("/api/get-twitch-creds"); // updated endpoint
     const creds = await res.json();
     channelName = creds.channel;
     console.log("Fetched Twitch channel:", channelName);
@@ -20,172 +49,145 @@ async function connectTwitch() {
       return;
     }
 
+    // Initialize TMI client
     client = new tmi.Client({
       options: { debug: true },
-      connection: { secure: true, reconnect: true },
+      connection: { reconnect: true, secure: true },
       identity: creds.token
-        ? { username: creds.channel, password: creds.token }
+        ? { username: channelName, password: creds.token }
         : undefined,
-      channels: [creds.channel],
+      channels: [channelName || "anonymous"]
     });
 
-    // ====== CONNECT TO TWITCH ======
+    // Connect
     await client.connect();
     connected = true;
-    console.log("✅ Connected to Twitch chat!");
 
-    // ====== UPDATE STATUS DOT ======
-    const authStatus = document.getElementById("auth-status");
-    const statusDot = document.getElementById("status-dot");
-    if (creds.token && creds.token.startsWith("oauth:")) {
-      authStatus.textContent = `🟢 Authenticated as ${channelName}`;
-      authStatus.className = "auth-ok";
-      document.querySelector(".poll-panel").classList.add("authenticated");
-    } else {
-      authStatus.textContent = `🔴 Anonymous mode`;
-      authStatus.className = "auth-fail";
-      document.querySelector(".poll-panel").classList.add("anonymous");
-    }
-
-    // ====== ATTACH MESSAGE HANDLER (ONLY ONCE) ======
     if (!messageHandlerAttached) {
-      client.on("message", handleChatCommand);
+      client.on("message", handleChatMessage);
       messageHandlerAttached = true;
     }
 
+    if (!creds.token) {
+      updateStatus("connected-anon");
+    } else {
+      updateStatus("connected-auth", channelName);
+    }
+
+    console.log("✅ Connected to Twitch chat!");
   } catch (err) {
     console.error("Error connecting to Twitch:", err);
-    connected = false;
+    updateStatus("disconnected");
   }
 }
 
-connectTwitch();
+// ====== HANDLE CHAT MESSAGES ======
+function handleChatMessage(channel, tags, message, self) {
+  if (self) return;
 
-// ==============================================
-// ========== POLL LOGIC BELOW ==================
-// ==============================================
+  const lowerMsg = message.trim().toLowerCase();
+  if (lowerMsg.startsWith("!")) handleChatCommand(tags.username, message);
+}
 
-let activePoll = null;
-let votes = {};
+// ====== POLL COMMAND HANDLER ======
+function handleChatCommand(user, message) {
+  const parts = message.trim().split(" ");
+  const command = parts[0].toLowerCase();
 
-// ====== HANDLE CHAT COMMANDS ======
-function handleChatCommand(channel, tags, message, self) {
-  if (self || !message) return;
-  const msg = message.trim();
+  // Simplified poll syntax: !poll (Question)/(Option1)/(Option2)/...
+  if (command === "!poll") {
+    const pollText = message.slice(6).trim();
+    const segments = pollText.split("/").map(s => s.trim()).filter(Boolean);
 
-  // === EASY CHAT POLL FORMAT ===
-  if (msg.toLowerCase().startsWith("!poll ")) {
-    const parts = msg.slice(6).split("/").map(s => s.trim()).filter(Boolean);
-    if (parts.length >= 2) {
-      const question = parts[0];
-      const options = parts.slice(1, 6); // limit 5 options
-      startPoll(tags.username, question, options);
-    } else {
-      client.say(channelName, `@${tags.username}, use format: !poll Question / Option1 / Option2 / Option3`);
+    if (segments.length < 2) {
+      console.log("⚠️ Invalid poll format. Use: !poll Question/Option1/Option2/...");
+      return;
     }
-    return;
+
+    const question = segments[0];
+    const options = segments.slice(1, 6); // limit to 5
+    startPoll(question, options);
   }
 
-  // === VOTE COMMAND ===
-  if (msg.toLowerCase().startsWith("!vote ")) {
-    const num = parseInt(msg.split(" ")[1]);
-    castVote(tags.username, num);
-    return;
+  if (command === "!vote") {
+    const voteIndex = parseInt(parts[1]);
+    if (pollActive && pollData && !isNaN(voteIndex)) {
+      castVote(user, voteIndex);
+    }
   }
 
-  // === END POLL ===
-  if (msg.toLowerCase() === "!endpoll") {
-    endPoll(tags.username);
-    return;
+  if (command === "!endpoll") {
+    if (pollActive) endPoll();
   }
 
-  // === RESULTS ===
-  if (msg.toLowerCase() === "!results") {
-    showResults();
-    return;
+  if (command === "!results") {
+    if (pollActive) showResults();
   }
 }
 
-// ====== START POLL ======
-function startPoll(username, question, options) {
-  if (activePoll) {
-    client.say(channelName, `@${username}, a poll is already running!`);
+// ====== POLL LOGIC ======
+function startPoll(question, options) {
+  if (pollActive) {
+    console.log("⚠️ Poll already active!");
     return;
   }
 
-  activePoll = { question, options, votes: Array(options.length).fill(0) };
-  votes = {};
+  pollActive = true;
+  pollData = {
+    question,
+    options,
+    votes: new Array(options.length).fill(0),
+    voters: new Set()
+  };
 
-  renderPoll(question, options);
-
-  client.say(channelName, `📊 New poll started by ${username}: ${question} (${options.map((opt, i) => `${i + 1}) ${opt}`).join(", ")})`);
-  console.log("Poll started:", activePoll);
-}
-
-// ====== CAST VOTE ======
-function castVote(username, optionNumber) {
-  if (!activePoll) return;
-
-  const choice = parseInt(optionNumber);
-  if (isNaN(choice) || choice < 1 || choice > activePoll.options.length) return;
-
-  if (votes[username]) {
-    client.say(channelName, `@${username}, you already voted!`);
-    return;
-  }
-
-  activePoll.votes[choice - 1]++;
-  votes[username] = choice;
-  updatePollDisplay();
-}
-
-// ====== END POLL ======
-function endPoll(username) {
-  if (!activePoll) {
-    client.say(channelName, `@${username}, there’s no active poll.`);
-    return;
-  }
-
-  const totalVotes = activePoll.votes.reduce((a, b) => a + b, 0);
-  const winnerIndex = activePoll.votes.indexOf(Math.max(...activePoll.votes));
-  const winner = activePoll.options[winnerIndex];
-
-  client.say(channelName, `🏁 Poll ended! "${winner}" wins with ${activePoll.votes[winnerIndex]} votes (${totalVotes} total).`);
-  activePoll = null;
-  votes = {};
-  clearPollDisplay();
-}
-
-// ====== SHOW RESULTS ======
-function showResults() {
-  if (!activePoll) return;
-  const results = activePoll.options
-    .map((opt, i) => `${i + 1}) ${opt}: ${activePoll.votes[i]} votes`)
-    .join(" | ");
-  client.say(channelName, `📊 Current results: ${results}`);
-}
-
-// ====== DISPLAY POLL IN OVERLAY ======
-function renderPoll(question, options) {
   const container = document.getElementById("poll-container");
   container.innerHTML = `
-    <div class="poll-question">${question}</div>
-    <ul class="poll-options">
-      ${options.map((opt, i) => `<li>${i + 1}) ${opt} — <span id="vote-${i}">0</span> votes</li>`).join("")}
-    </ul>
+    <div class="poll-box">
+      <h2>${question}</h2>
+      ${options.map((opt, i) => `<p>[${i + 1}] ${opt}</p>`).join("")}
+      <p class="poll-note">(Vote using !vote 1–${options.length})</p>
+    </div>
   `;
 }
 
-// ====== UPDATE POLL DISPLAY ======
-function updatePollDisplay() {
-  if (!activePoll) return;
-  activePoll.votes.forEach((count, i) => {
-    const el = document.getElementById(`vote-${i}`);
-    if (el) el.textContent = count;
-  });
+function castVote(user, voteIndex) {
+  if (!pollActive) return;
+  if (pollData.voters.has(user)) return; // prevent double vote
+
+  if (voteIndex >= 1 && voteIndex <= pollData.options.length) {
+    pollData.votes[voteIndex - 1]++;
+    pollData.voters.add(user);
+    console.log(`🗳️ ${user} voted for ${pollData.options[voteIndex - 1]}`);
+  }
 }
 
-// ====== CLEAR POLL DISPLAY ======
-function clearPollDisplay() {
-  document.getElementById("poll-container").innerHTML = "<p>No active poll</p>";
+function endPoll() {
+  pollActive = false;
+  showResults();
 }
+
+function showResults() {
+  const container = document.getElementById("poll-container");
+  if (!pollData) return;
+
+  const totalVotes = pollData.votes.reduce((a, b) => a + b, 0);
+  const resultsHTML = pollData.options
+    .map((opt, i) => {
+      const votes = pollData.votes[i];
+      const percent = totalVotes ? Math.round((votes / totalVotes) * 100) : 0;
+      return `<p>[${i + 1}] ${opt} — ${votes} votes (${percent}%)</p>`;
+    })
+    .join("");
+
+  container.innerHTML = `
+    <div class="poll-box">
+      <h2>Poll Ended: ${pollData.question}</h2>
+      ${resultsHTML}
+      <p class="poll-note">Total Votes: ${totalVotes}</p>
+    </div>
+  `;
+  pollData = null;
+}
+
+// ====== INIT ======
+connectTwitch();
