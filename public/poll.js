@@ -1,6 +1,6 @@
-// MACHETTE SQUAD Poll Widget v5.7.2
-// "No Double Post Edition" + Easy Poll Command Format
-// ---------------------------------------------
+// MACHETTE SQUAD Poll Widget v5.7.3
+// "Unified Creds Edition" — switched to /api/get-twitch-creds
+// ------------------------------------------------------------
 
 let client = null;
 let channelName = "";
@@ -10,7 +10,7 @@ let messageHandlerAttached = false;
 // ====== FETCH TWITCH CREDS FROM SERVERLESS API ======
 async function connectTwitch() {
   try {
-    const res = await fetch("/api/get-twitch-token");
+    const res = await fetch("/api/get-twitch-creds"); // ← updated endpoint
     const creds = await res.json();
     channelName = creds.channel;
     console.log("Fetched Twitch channel:", channelName);
