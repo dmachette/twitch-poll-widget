@@ -1,4 +1,4 @@
-// MACHETTE SQUAD Poll Widget v5.6.1 — final poll.js (auth + reactive glow)
+// MACHETTE SQUAD Poll Widget v5.7.2 — No Double Post Edition (auth + reactive glow)
 
 let channelName = null;
 const statusDot = document.getElementById("status-dot");
@@ -58,7 +58,6 @@ async function getTwitchCredentials() {
 
 async function connectTwitch() {
   try {
-    // ensure tmi.js loaded
     await waitForTmi().catch(e => {
       console.warn("tmi.js not loaded within timeout; continuing may fail.", e);
     });
@@ -67,12 +66,30 @@ async function connectTwitch() {
 
     // build client config
     const clientConfig = { connection: { secure: true, reconnect: true }, channels: [channelName] };
+    if (creds && creds.token) clientConfig.identity = { username: channelName, password: creds.token };
 
-    if (creds && creds.token) {
-      clientConfig.identity = { username: channelName, password: creds.token };
+    // 🔒 disconnect any previous client before making a new one
+    if (client && client.readyState !== "CLOSED") {
+      try {
+        console.log("Disconnecting previous TMI client to avoid duplicates...");
+        await client.disconnect();
+      } catch (e) {
+        console.warn("Previous client disconnect failed (probably already closed).", e);
+      }
     }
 
     client = new tmi.Client(clientConfig);
+
+    // 🧩 Prevent multiple message listeners (guards against reconnect duplication)
+    if (window.tmiMessageHandlerAttached) {
+      console.log("Message handler already attached — skipping duplicate bind.");
+    } else {
+      window.tmiMessageHandlerAttached = true;
+      client.on("message", (channel, tags, message, self) => {
+        if (self) return;
+        handleChatCommand(channel, tags, message);
+      });
+    }
 
     await client.connect();
 
@@ -93,114 +110,6 @@ async function connectTwitch() {
       pollPanel.classList.add("anonymous");
     }
 
-    // Listen for chat commands
-client.on("message", (channel, tags, message, self) => {
-  if (self) return;
-
-  const msg = message.trim();
-
-  // === EASY CHAT POLL FORMAT ===
-  if (msg.toLowerCase().startsWith("!poll ")) {
-    const parts = msg.slice(6).split("/").map(s => s.trim()).filter(Boolean);
-    if (parts.length >= 2) {
-      const question = parts[0];
-      const options = parts.slice(1, 6); // limit to 5
-      startPoll(tags.username, question, options);
-    } else {
-      client.say(channel, `@${tags.username}, use format: !poll Question / Option1 / Option2 / Option3`);
-    }
-    return;
-  }
-
-  // === VOTE COMMAND ===
-  if (msg.toLowerCase().startsWith("!vote ")) {
-    const num = parseInt(msg.split(" ")[1]);
-    castVote(tags.username, num);
-    return;
-  }
-
-  // === END POLL ===
-  if (msg.toLowerCase() === "!endpoll") {
-    endPoll(tags.username);
-    return;
-  }
-
-  // === RESULTS ===
-  if (msg.toLowerCase() === "!results") {
-    showResults();
-    return;
-  }
-});
-
-
-      // Only allow moderators & broadcaster to start/end polls
-      const isMod = !!tags.mod;
-      const isBroadcaster = tags.badges && tags.badges.broadcaster;
-      const isAuthorized = isMod || isBroadcaster;
-
-      // Start poll: only authorized
-      if (message.startsWith("!startpoll ")) {
-        if (!isAuthorized) {
-          client.say(channelName, `Only mods or broadcaster can start polls.`);
-          return;
-        }
-        if (currentPoll) {
-          client.say(channelName, "A poll is already running!");
-          return;
-        }
-        const options = message.replace("!startpoll ", "").trim().split(/\s+/).slice(0,5);
-        if (options.length < 2) {
-          client.say(channelName, "You need at least 2 options to start a poll!");
-          return;
-        }
-        currentPoll = { options, votes: Array(options.length).fill(0) };
-        client.say(channelName, `📊 Poll started! Options: ${options.join(", ")}`);
-        renderPoll();
-        return;
-      }
-
-      // Vote
-      if (message.startsWith("!vote ")) {
-        if (!currentPoll) return;
-        const idx = parseInt(message.split(/\s+/)[1], 10) - 1;
-        if (Number.isInteger(idx) && idx >= 0 && idx < currentPoll.options.length) {
-          currentPoll.votes[idx]++;
-          renderPoll();
-        }
-        return;
-      }
-
-      // End poll: only authorized
-      if (message.trim() === "!endpoll") {
-        if (!isAuthorized) {
-          client.say(channelName, `Only mods or broadcaster can end polls.`);
-          return;
-        }
-        if (!currentPoll) {
-          client.say(channelName, "No poll is running.");
-          return;
-        }
-        // announce results
-        const resultsText = currentPoll.options.map((o,i) => `${o}: ${currentPoll.votes[i]}v`).join(", ");
-        const winnerIndex = currentPoll.votes.indexOf(Math.max(...currentPoll.votes));
-        const winner = currentPoll.options[winnerIndex];
-        client.say(channelName, `🏁 Poll ended! Winner: ${winner} — ${resultsText}`);
-        currentPoll = null;
-        pollContainer.innerHTML = "<p>No active poll</p>";
-        return;
-      }
-
-      // Results in chat
-      if (message.trim() === "!results") {
-        if (!currentPoll) {
-          client.say(channelName, "No active poll.");
-          return;
-        }
-        const resultsText = currentPoll.options.map((o,i) => `${o}: ${currentPoll.votes[i]}v`).join(", ");
-        client.say(channelName, `📊 Current poll results: ${resultsText}`);
-        return;
-      }
-    });
   } catch (err) {
     console.error("Failed to connect to Twitch:", err);
     statusDot.style.background = "red";
@@ -209,6 +118,75 @@ client.on("message", (channel, tags, message, self) => {
     authStatus.className = "auth-fail";
     pollPanel.classList.remove("authenticated");
     pollPanel.classList.add("anonymous");
+  }
+}
+
+/* ---------------------------
+   CHAT COMMAND HANDLER
+---------------------------- */
+
+function handleChatCommand(channel, tags, message) {
+  const msg = message.trim();
+  const user = tags.username;
+  const isMod = !!tags.mod;
+  const isBroadcaster = tags.badges && tags.badges.broadcaster;
+  const isAuthorized = isMod || isBroadcaster;
+
+  // === EASY CHAT POLL FORMAT ===
+  if (msg.toLowerCase().startsWith("!poll ")) {
+    const parts = msg.slice(6).split("/").map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const question = parts[0];
+      const options = parts.slice(1, 6);
+      startPoll(user, question, options);
+    } else {
+      client.say(channel, `@${user}, use format: !poll Question / Option1 / Option2 / Option3`);
+    }
+    return;
+  }
+
+  // === VOTE COMMAND ===
+  if (msg.toLowerCase().startsWith("!vote ")) {
+    const num = parseInt(msg.split(" ")[1]);
+    castVote(user, num);
+    return;
+  }
+
+  // === END POLL ===
+  if (msg.toLowerCase() === "!endpoll") {
+    if (!isAuthorized) {
+      client.say(channel, `Only mods or broadcaster can end polls.`);
+      return;
+    }
+    endPoll(user);
+    return;
+  }
+
+  // === RESULTS ===
+  if (msg.toLowerCase() === "!results") {
+    showResults();
+    return;
+  }
+
+  // === START POLL ===
+  if (msg.startsWith("!startpoll ")) {
+    if (!isAuthorized) {
+      client.say(channel, `Only mods or broadcaster can start polls.`);
+      return;
+    }
+    if (currentPoll) {
+      client.say(channel, "A poll is already running!");
+      return;
+    }
+    const options = message.replace("!startpoll ", "").trim().split(/\s+/).slice(0,5);
+    if (options.length < 2) {
+      client.say(channel, "You need at least 2 options to start a poll!");
+      return;
+    }
+    currentPoll = { options, votes: Array(options.length).fill(0) };
+    client.say(channel, `📊 Poll started! Options: ${options.join(", ")}`);
+    renderPoll();
+    return;
   }
 }
 
@@ -235,7 +213,7 @@ async function fetchBuildVersion() {
     const res = await fetch("/api/get-build");
     if (!res.ok) throw new Error("Failed to fetch build.json");
     const data = await res.json();
-    const buildVersion = data.build?.version || "v5.6.1";
+    const buildVersion = data.build?.version || "v5.7.2";
     document.getElementById("build-version").textContent = buildVersion;
   } catch (err) {
     console.warn("Could not load build version:", err);
